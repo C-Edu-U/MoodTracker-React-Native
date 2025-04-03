@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Dimensions } from "react-native";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebase";
+import { getAuth } from "firebase/auth";
 import { LineChart } from "react-native-chart-kit";
 import CustomButton from "../components/CustomButton";
 import { colors } from "../theme";
@@ -12,10 +13,15 @@ const MoodChartScreen = ({ navigation }: any) => {
     data: [],
   });
 
+  const user = getAuth().currentUser;
+
   useEffect(() => {
     const fetchMoodData = async () => {
+      if (!user) return;
+
       try {
-        const querySnapshot = await getDocs(collection(db, "records"));
+        const q = query(collection(db, "records"), where("userId", "==", user.uid));
+        const querySnapshot = await getDocs(q);
         const records = querySnapshot.docs.map((doc) => doc.data());
 
         const sortedRecords = records.sort(
@@ -25,15 +31,15 @@ const MoodChartScreen = ({ navigation }: any) => {
         const lastSevenRecords = sortedRecords.slice(0, 7);
 
         const moodValues: Record<string, number> = {
-          "feliz": 5,
-          "contento": 4,
-          "neutral": 3,
-          "triste": 2,
-          "deprimido": 1,
-          "enojado": 1,
-          "ansioso": 2,
-          "estresado": 2,
-          "cansado": 3,
+          feliz: 5,
+          contento: 4,
+          neutral: 3,
+          triste: 2,
+          deprimido: 1,
+          enojado: 1,
+          ansioso: 2,
+          estresado: 2,
+          cansado: 3,
         };
 
         const labels = lastSevenRecords.map((record) =>
@@ -57,7 +63,7 @@ const MoodChartScreen = ({ navigation }: any) => {
     };
 
     fetchMoodData();
-  }, []);
+  }, [user]);
 
   return (
     <ScrollView style={styles.container}>
@@ -83,7 +89,7 @@ const MoodChartScreen = ({ navigation }: any) => {
                 backgroundGradientFrom: colors.card,
                 backgroundGradientTo: colors.card,
                 decimalPlaces: 0,
-                color: (opacity = 1) => `rgba(162, 210, 255, ${opacity})`, // azul pastel
+                color: (opacity = 1) => `rgba(162, 210, 255, ${opacity})`,
                 labelColor: () => colors.text,
                 strokeWidth: 2,
                 propsForDots: {

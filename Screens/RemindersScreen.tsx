@@ -10,21 +10,33 @@ import {
   Platform,
   ScrollView,
 } from "react-native";
-import { collection, addDoc, getDocs, deleteDoc, doc } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc,
+  query,
+  where,
+} from "firebase/firestore";
 import { db } from "../firebase";
 import CustomButton from "../components/CustomButton";
 import { colors } from "../theme";
+import { getAuth } from "firebase/auth";
 
 const RemindersScreen = () => {
   const [message, setMessage] = useState("");
   const [repeat, setRepeat] = useState("");
   const [time, setTime] = useState("");
   const [reminders, setReminders] = useState<any[]>([]);
+  const user = getAuth().currentUser;
 
   useEffect(() => {
     const fetchReminders = async () => {
+      if (!user) return;
       try {
-        const querySnapshot = await getDocs(collection(db, "reminders"));
+        const q = query(collection(db, "reminders"), where("userId", "==", user.uid));
+        const querySnapshot = await getDocs(q);
         const remindersList = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
@@ -36,9 +48,10 @@ const RemindersScreen = () => {
     };
 
     fetchReminders();
-  }, []);
+  }, [user]);
 
   const handleAddReminder = async () => {
+    if (!user) return;
     if (!message.trim() || !repeat.trim() || !time.trim()) {
       Alert.alert("Error", "Todos los campos son obligatorios.");
       return;
@@ -49,11 +62,12 @@ const RemindersScreen = () => {
         message,
         repeat,
         time,
+        userId: user.uid,
       });
 
       setReminders((prev) => [
         ...prev,
-        { id: docRef.id, message, repeat, time },
+        { id: docRef.id, message, repeat, time, userId: user.uid },
       ]);
 
       setMessage("");

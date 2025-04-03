@@ -1,7 +1,19 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, Alert, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Alert,
+  StyleSheet,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../firebase";
+import { getAuth } from "firebase/auth";
+import CustomButton from "../components/CustomButton";
+import { colors } from "../theme";
 
 const AddRecordScreen = ({ navigation }: any) => {
   const [date, setDate] = useState("");
@@ -12,7 +24,10 @@ const AddRecordScreen = ({ navigation }: any) => {
   const [heartRate, setHeartRate] = useState("");
   const [weight, setWeight] = useState("");
 
+  const user = getAuth().currentUser;
+
   const handleAddRecord = async () => {
+    if (!user) return;
     if (!date.trim() || !mood.trim() || !bloodPressure.trim() || !heartRate.trim()) {
       Alert.alert("Error", "Por favor, completa todos los campos obligatorios.");
       return;
@@ -20,6 +35,7 @@ const AddRecordScreen = ({ navigation }: any) => {
 
     try {
       await addDoc(collection(db, "records"), {
+        userId: user.uid,
         date: new Date(date).toISOString(),
         mood,
         symptoms: symptoms.split(",").map((s) => s.trim()),
@@ -38,87 +54,134 @@ const AddRecordScreen = ({ navigation }: any) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Añadir Registro Diario</Text>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      style={styles.wrapper}
+    >
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.title}>Añadir Registro Diario</Text>
+        <Text style={styles.subtitle}>
+          Cuida tu bienestar registrando cómo te sientes cada día 💖
+        </Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Fecha (YYYY-MM-DD)"
-        value={date}
-        onChangeText={setDate}
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Fecha (YYYY-MM-DD)"
+          placeholderTextColor={colors.muted}
+          value={date}
+          onChangeText={setDate}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Presión arterial (Ej: 120/80)"
-        value={bloodPressure}
-        onChangeText={setBloodPressure}
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Presión arterial (Ej: 120/80)"
+          placeholderTextColor={colors.muted}
+          value={bloodPressure}
+          onChangeText={setBloodPressure}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Frecuencia cardiaca (Ej: 72)"
-        keyboardType="numeric"
-        value={heartRate}
-        onChangeText={setHeartRate}
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Frecuencia cardiaca (Ej: 72)"
+          placeholderTextColor={colors.muted}
+          keyboardType="numeric"
+          value={heartRate}
+          onChangeText={setHeartRate}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Peso (Ej: 72.5 - opcional)"
-        keyboardType="numeric"
-        value={weight}
-        onChangeText={setWeight}
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Peso (Ej: 72.5 - opcional)"
+          placeholderTextColor={colors.muted}
+          keyboardType="numeric"
+          value={weight}
+          onChangeText={setWeight}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Estado de ánimo (Ej: Feliz, Contento, Neutral, Triste, Deprimido, Enojado, Ansioso, Estresado, Cansado)"
-        value={mood}
-        onChangeText={setMood}
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Estado de ánimo (Ej: Feliz, Triste, etc.)"
+          placeholderTextColor={colors.muted}
+          value={mood}
+          onChangeText={setMood}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Síntomas (separados por coma)"
-        value={symptoms}
-        onChangeText={setSymptoms}
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Síntomas (separados por coma)"
+          placeholderTextColor={colors.muted}
+          value={symptoms}
+          onChangeText={setSymptoms}
+        />
 
-      <TextInput
-        style={[styles.input, { height: 80 }]}
-        placeholder="Notas adicionales (opcional)"
-        value={notes}
-        onChangeText={setNotes}
-        multiline
-      />
+        <TextInput
+          style={[styles.input, styles.notes]}
+          placeholder="Notas adicionales (opcional)"
+          placeholderTextColor={colors.muted}
+          value={notes}
+          onChangeText={setNotes}
+          multiline
+        />
 
-      <Button title="Guardar Registro" onPress={handleAddRecord} />
-    </View>
+        <CustomButton
+          title="Guardar Registro"
+          onPress={handleAddRecord}
+          style={styles.saveButton}
+        />
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    padding: 16, 
-    backgroundColor: "#fff" 
+  wrapper: {
+    flex: 1,
+    backgroundColor: colors.background,
   },
-  title: { 
-    fontSize: 22, 
-    fontWeight: "bold", 
-    marginBottom: 20, 
+  container: {
+    padding: 20,
+    alignItems: "center",
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: colors.primary,
+    marginBottom: 8,
     textAlign: "center",
-    color: "#333"
   },
-  input: { 
-    height: 50, 
+  subtitle: {
+    fontSize: 16,
+    color: colors.text,
+    marginBottom: 30,
+    textAlign: "center",
+    lineHeight: 22,
+  },
+  input: {
+    width: "100%",
+    backgroundColor: colors.card,
+    borderColor: colors.primary,
     borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    paddingHorizontal: 10,
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: colors.text,
     marginBottom: 16,
-    backgroundColor: "#f9f9f9"
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  notes: {
+    height: 100,
+    textAlignVertical: "top",
+  },
+  saveButton: {
+    backgroundColor: colors.primary,
+    width: "100%",
+    paddingVertical: 12,
+    borderRadius: 25,
+    marginTop: 10,
   },
 });
 
