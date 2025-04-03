@@ -8,6 +8,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  TouchableOpacity,
 } from "react-native";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../firebase";
@@ -15,9 +16,11 @@ import { getAuth } from "firebase/auth";
 import CustomButton from "../components/CustomButton";
 import { colors } from "../theme";
 import RNPickerSelect from "react-native-picker-select";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 const AddRecordScreen = ({ navigation }: any) => {
-  const [date, setDate] = useState("");
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [mood, setMood] = useState("");
   const [symptoms, setSymptoms] = useState("");
   const [notes, setNotes] = useState("");
@@ -29,7 +32,7 @@ const AddRecordScreen = ({ navigation }: any) => {
 
   const handleAddRecord = async () => {
     if (!user) return;
-    if (!date.trim() || !mood.trim() || !bloodPressure.trim() || !heartRate.trim()) {
+    if (!mood.trim() || !bloodPressure.trim() || !heartRate.trim()) {
       Alert.alert("Error", "Por favor, completa todos los campos obligatorios.");
       return;
     }
@@ -37,7 +40,7 @@ const AddRecordScreen = ({ navigation }: any) => {
     try {
       await addDoc(collection(db, "records"), {
         userId: user.uid,
-        date: new Date(date).toISOString(),
+        date: selectedDate.toISOString(),
         mood,
         symptoms: symptoms.split(",").map((s) => s.trim()),
         notes: notes || "",
@@ -65,13 +68,27 @@ const AddRecordScreen = ({ navigation }: any) => {
           Cuida tu bienestar registrando cómo te sientes cada día 💖
         </Text>
 
-        <TextInput
+        {/* 📅 Selector de Fecha */}
+        <TouchableOpacity
           style={styles.input}
-          placeholder="Fecha (YYYY-MM-DD)"
-          placeholderTextColor={colors.muted}
-          value={date}
-          onChangeText={setDate}
-        />
+          onPress={() => setShowDatePicker(true)}
+        >
+          <Text style={{ color: colors.text }}>
+            {selectedDate.toISOString().split("T")[0]}
+          </Text>
+        </TouchableOpacity>
+
+        {showDatePicker && (
+          <DateTimePicker
+            value={selectedDate}
+            mode="date"
+            display="default"
+            onChange={(event, date) => {
+              setShowDatePicker(false);
+              if (date) setSelectedDate(date);
+            }}
+          />
+        )}
 
         <TextInput
           style={styles.input}
@@ -99,7 +116,7 @@ const AddRecordScreen = ({ navigation }: any) => {
           onChangeText={setWeight}
         />
 
-        {/* Selector de estado de ánimo */}
+        {/* 🎭 Selector de estado de ánimo */}
         <View style={styles.pickerWrapper}>
           <RNPickerSelect
             onValueChange={(value) => setMood(value)}
@@ -174,7 +191,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 12,
     paddingHorizontal: 15,
-    paddingVertical: 12,
+    paddingVertical: 14,
     fontSize: 16,
     color: colors.text,
     marginBottom: 16,
@@ -189,6 +206,7 @@ const styles = StyleSheet.create({
   },
   pickerWrapper: {
     width: "100%",
+    marginBottom: 16,
   },
   saveButton: {
     backgroundColor: colors.primary,
@@ -209,7 +227,6 @@ const pickerSelectStyles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 16,
     color: colors.text,
-    marginBottom: 16,
   },
   inputAndroid: {
     backgroundColor: colors.card,
@@ -220,7 +237,6 @@ const pickerSelectStyles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 16,
     color: colors.text,
-    marginBottom: 16,
   },
 });
 
