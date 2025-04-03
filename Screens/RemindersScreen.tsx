@@ -8,7 +8,6 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
 } from "react-native";
 import {
   collection,
@@ -92,63 +91,66 @@ const RemindersScreen = () => {
       style={styles.wrapper}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>📌 Recordatorios</Text>
-        <Text style={styles.subtitle}>Mantén tu rutina emocional en orden ✨</Text>
+      <FlatList
+        ListHeaderComponent={
+          <View>
+            <Text style={styles.title}>📌 Recordatorios</Text>
+            <Text style={styles.subtitle}>
+              Mantén tu rutina emocional en orden ✨
+            </Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Mensaje del recordatorio"
-          placeholderTextColor={colors.muted}
-          value={message}
-          onChangeText={setMessage}
-        />
+            <TextInput
+              style={styles.input}
+              placeholder="Mensaje del recordatorio"
+              placeholderTextColor={colors.muted}
+              value={message}
+              onChangeText={setMessage}
+            />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Repetición (Ej: Diario, Semanal, etc.)"
-          placeholderTextColor={colors.muted}
-          value={repeat}
-          onChangeText={setRepeat}
-        />
+            <TextInput
+              style={styles.input}
+              placeholder="Repetición (Ej: Diario, Semanal, etc.)"
+              placeholderTextColor={colors.muted}
+              value={repeat}
+              onChangeText={setRepeat}
+            />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Hora (Ej: 08:30 AM)"
-          placeholderTextColor={colors.muted}
-          value={time}
-          onChangeText={setTime}
-        />
+            <TextInput
+              style={styles.input}
+              placeholder="Hora (Ej: 08:30 AM)"
+              placeholderTextColor={colors.muted}
+              value={time}
+              onChangeText={setTime}
+            />
 
-        <CustomButton
-          title="Agregar"
-          onPress={handleAddReminder}
-          style={styles.addButton}
-        />
+            <CustomButton
+              title="Agregar"
+              onPress={handleAddReminder}
+              style={styles.addButton}
+            />
 
-        <Text style={styles.sectionTitle}>🗓️ Tus recordatorios</Text>
-
-        <FlatList
-          data={reminders}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.reminderCard}>
-              <View style={styles.reminderTextContainer}>
-                <Text style={styles.reminderMessage}>{item.message}</Text>
-                <Text style={styles.reminderDetails}>
-                  {item.repeat} · {item.time}
-                </Text>
-              </View>
-              <CustomButton
-                title="Eliminar"
-                onPress={() => handleDeleteReminder(item.id)}
-                style={styles.deleteButton}
-              />
+            <Text style={styles.sectionTitle}>🗓️ Tus recordatorios</Text>
+          </View>
+        }
+        data={reminders}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.reminderCard}>
+            <View style={styles.reminderTextContainer}>
+              <Text style={styles.reminderMessage}>{item.message}</Text>
+              <Text style={styles.reminderDetails}>
+                {item.repeat} · {item.time}
+              </Text>
             </View>
-          )}
-          contentContainerStyle={{ paddingBottom: 40 }}
-        />
-      </ScrollView>
+            <CustomButton
+              title="Eliminar"
+              onPress={() => handleDeleteReminder(item.id)}
+              style={styles.deleteButton}
+            />
+          </View>
+        )}
+        contentContainerStyle={styles.container}
+      />
     </KeyboardAvoidingView>
   );
 };
@@ -231,3 +233,4 @@ const styles = StyleSheet.create({
 });
 
 export default RemindersScreen;
+

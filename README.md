@@ -57,7 +57,9 @@ expo
 react-navigation
 react-native-vector-icons
 react-native-dotenv
-npm install expo-constants
+expo-constants
+react-native-picker-select
+
 ```
 
 ---

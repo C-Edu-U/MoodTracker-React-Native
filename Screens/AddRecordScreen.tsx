@@ -14,6 +14,7 @@ import { db } from "../firebase";
 import { getAuth } from "firebase/auth";
 import CustomButton from "../components/CustomButton";
 import { colors } from "../theme";
+import RNPickerSelect from "react-native-picker-select";
 
 const AddRecordScreen = ({ navigation }: any) => {
   const [date, setDate] = useState("");
@@ -98,13 +99,23 @@ const AddRecordScreen = ({ navigation }: any) => {
           onChangeText={setWeight}
         />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Estado de ánimo (Ej: Feliz, Triste, etc.)"
-          placeholderTextColor={colors.muted}
-          value={mood}
-          onChangeText={setMood}
-        />
+        {/* Selector de estado de ánimo */}
+        <View style={styles.pickerWrapper}>
+          <RNPickerSelect
+            onValueChange={(value) => setMood(value)}
+            placeholder={{ label: "Selecciona tu estado de ánimo...", value: null }}
+            items={[
+              { label: "5 - Feliz 😊", value: "Feliz" },
+              { label: "4 - Contento 😃", value: "Contento" },
+              { label: "3 - Neutral / Cansado 😐", value: "Neutral" },
+              { label: "2 - Triste / Ansioso / Estresado 😟", value: "Triste" },
+              { label: "1 - Deprimido / Enojado 😡", value: "Deprimido" },
+            ]}
+            style={pickerSelectStyles}
+            value={mood}
+            useNativeAndroidPickerStyle={false}
+          />
+        </View>
 
         <TextInput
           style={styles.input}
@@ -176,12 +187,40 @@ const styles = StyleSheet.create({
     height: 100,
     textAlignVertical: "top",
   },
+  pickerWrapper: {
+    width: "100%",
+  },
   saveButton: {
     backgroundColor: colors.primary,
     width: "100%",
     paddingVertical: 12,
     borderRadius: 25,
     marginTop: 10,
+  },
+});
+
+const pickerSelectStyles = StyleSheet.create({
+  inputIOS: {
+    backgroundColor: colors.card,
+    borderColor: colors.primary,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: colors.text,
+    marginBottom: 16,
+  },
+  inputAndroid: {
+    backgroundColor: colors.card,
+    borderColor: colors.primary,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: colors.text,
+    marginBottom: 16,
   },
 });
 
