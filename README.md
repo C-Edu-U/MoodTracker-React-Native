@@ -59,6 +59,7 @@ react-native-vector-icons
 react-native-dotenv
 expo-constants
 react-native-picker-select
+expo-notifications expo-device
 
 ```
 

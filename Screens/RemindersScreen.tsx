@@ -22,6 +22,11 @@ import { db } from "../firebase";
 import CustomButton from "../components/CustomButton";
 import { colors } from "../theme";
 import { getAuth } from "firebase/auth";
+import RNPickerSelect from "react-native-picker-select";
+import {
+  requestNotificationPermission,
+  scheduleReminderNotification,
+} from "../notifications"; // Asegúrate de que la ruta sea correcta
 
 const RemindersScreen = () => {
   const [message, setMessage] = useState("");
@@ -31,6 +36,7 @@ const RemindersScreen = () => {
   const user = getAuth().currentUser;
 
   useEffect(() => {
+    requestNotificationPermission(); // 🔔 pedir permiso al abrir
     const fetchReminders = async () => {
       if (!user) return;
       try {
@@ -63,6 +69,13 @@ const RemindersScreen = () => {
         time,
         userId: user.uid,
       });
+
+      // 🔔 Programar notificación
+      await scheduleReminderNotification(
+        message,
+        time,
+        repeat as "diario" | "semanal"
+      );
 
       setReminders((prev) => [
         ...prev,
@@ -107,17 +120,23 @@ const RemindersScreen = () => {
               onChangeText={setMessage}
             />
 
-            <TextInput
-              style={styles.input}
-              placeholder="Repetición (Ej: Diario, Semanal, etc.)"
-              placeholderTextColor={colors.muted}
-              value={repeat}
-              onChangeText={setRepeat}
-            />
+            <View style={styles.pickerWrapper}>
+              <RNPickerSelect
+                onValueChange={(value) => setRepeat(value)}
+                placeholder={{ label: "Selecciona frecuencia...", value: null }}
+                items={[
+                  { label: "Diario", value: "diario" },
+                  { label: "Semanal", value: "semanal" },
+                ]}
+                style={pickerSelectStyles}
+                value={repeat}
+                useNativeAndroidPickerStyle={false}
+              />
+            </View>
 
             <TextInput
               style={styles.input}
-              placeholder="Hora (Ej: 08:30 AM)"
+              placeholder="Hora (Ej: 08:30)"
               placeholderTextColor={colors.muted}
               value={time}
               onChangeText={setTime}
@@ -188,6 +207,9 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     elevation: 2,
   },
+  pickerWrapper: {
+    marginBottom: 15,
+  },
   addButton: {
     backgroundColor: colors.success,
     borderRadius: 25,
@@ -232,5 +254,27 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RemindersScreen;
+const pickerSelectStyles = StyleSheet.create({
+  inputIOS: {
+    backgroundColor: colors.card,
+    borderColor: colors.primary,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: colors.text,
+  },
+  inputAndroid: {
+    backgroundColor: colors.card,
+    borderColor: colors.primary,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: colors.text,
+  },
+});
 
+export default RemindersScreen;
